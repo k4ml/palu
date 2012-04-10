@@ -27,7 +27,7 @@ class Response(object):
 
 class Patu(object):
 
-    def __init__(self, urls=[], spiders=1, spinner=True, verbose=False, depth=-1, input_file=None, generate=False):
+    def __init__(self, urls=[], spiders=1, spinner=True, verbose=False, depth=-1, input_file=None, generate=False, check_image=False):
         # Set up the multiprocessing bits
         self.processes = []
         self.task_queue = Queue()
@@ -36,6 +36,7 @@ class Patu(object):
         self.queued_urls = {}
         self.seen_urls = set()
         self.spinner = Spinner()
+        self.check_image = check_image
 
         # Generate the initial URLs, either from command-line, stdin, or file
         if input_file:
@@ -122,6 +123,20 @@ class Patu(object):
                 # Ignore the #foo at the end of the url
                 no_fragment = parts[:4] + ('',)
                 links.append(urlunsplit(no_fragment))
+
+        if self.check_image:
+            for link in html.cssselect('img'):
+                if not link.attrib.has_key('src'):
+                    # Skip links w/o an src attrib
+                    continue
+                href = link.attrib['src']
+                absolute_url = urljoin(resp['content-location'], href.strip())
+                parts = urlsplit(absolute_url)
+                if parts.netloc in self.constraints and parts.scheme == 'http':
+                    # Ignore the #foo at the end of the url
+                    no_fragment = parts[:4] + ('',)
+                    links.append(urlunsplit(no_fragment))
+
         return Response(url, resp.status, content, links)
 
     def process_next_url(self):
@@ -195,6 +210,7 @@ def main():
         ["-d", "--depth", dict(dest="depth", type="int", default=-1, help="does a breadth-first crawl, stopping after DEPTH levels")],
         ['-g', '--generate', dict(dest='generate', action='store_true', default=False, help='generate a list of crawled URLs on stdout')],
         ['-i', '--input', dict(dest='input_file', type='str', default='', help='file of URLs to crawl')],
+        ["-m", "--check-image", dict(dest="check_image", action="store_true", default=False, help="check images on each pages")],
     ]
     for s, l, k in options_a:
         parser.add_option(s, l, **k)
@@ -208,7 +224,8 @@ def main():
         'verbose': options.verbose,
         'depth': options.depth,
         'generate': options.generate,
-        'input_file': options.input_file
+        'input_file': options.input_file,
+        'check_image': options.check_image,
     }
     spider = Patu(**kwargs)
     spider.crawl()
