@@ -1,34 +1,35 @@
-Patu
+Palu
 ====
 
-A small spider, useful for checking a site for 404s and 500s. Patu requires httplib2 and lxml:
+A small spider, useful for checking a site for 404s and 500s.
+It's a forked of [Patu][1].Palu requires httplib2 and lxml:
 
     pip install -U httplib2 lxml
     
-Is it safe? [![Build Status](https://secure.travis-ci.org/akrito/patu.png?branch=master)](http://travis-ci.org/akrito/patu)
+Is it safe? [![Build Status](https://secure.travis-ci.org/akrito/palu.png?branch=master)](http://travis-ci.org/akrito/palu)
 
 Quick Usage
 ===========
 
 To see available options:
 
-    patu.py --help
+    palu.py --help
 
 To spider an entire site using 5 workers, only showing errors:
 
-    patu.py --spiders=5 www.example.com
+    palu.py --spiders=5 www.example.com
     
 To spider, stopping after the first level of links:
 
-    patu.py --depth=1 www.example.com
+    palu.py --depth=1 www.example.com
     
 To get a list of every linked page on a site:
 
-    patu.py --generate www.example.com > urls.txt
+    palu.py --generate www.example.com > urls.txt
     
 Instead of spidering for URLs, use a file instead and show all responses:
 
-    patu.py --input=urls.txt --verbose www.example.com
+    palu.py --input=urls.txt --verbose www.example.com
 
 Format of URLs File
 ===================
@@ -44,8 +45,9 @@ The output produced by <code>--generate</code> is formatted like so:
 Testing
 =======
 
-Patu uses Nose for testing. To install Nose and test:
+Palu uses Nose for testing. To install Nose and test:
 
     pip install -U nose
     nosetests
 
+[1]:https://pypi.python.org/pypi/patu
