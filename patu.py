@@ -2,11 +2,22 @@
 
 import httplib2
 import sys
+
+import requests
 from lxml.html import fromstring
 from optparse import OptionParser
 from multiprocessing import Process, Queue
 from urlparse import urlsplit, urljoin, urlunsplit
 
+class HTTP(object):
+    def __init__(self, timeout=60):
+        self.timeout = timeout
+    def request(self, url):
+        resp = requests.get(url, allow_redirects=True)
+        resp.status = resp.status_code
+        return resp, resp.content
+
+httplib2.Http = HTTP
 
 class Spinner(object):
     def __init__(self):
@@ -62,7 +73,7 @@ class Patu(object):
                 # Follow initial redirects here to set self.constraints
                 try:
                     resp, content = h.request(url)
-                    url = resp['content-location']
+                    url = resp.url
                 except:
                     # This URL is no good. Keep it in the queue to show the
                     # error later
@@ -101,7 +112,7 @@ class Patu(object):
                 return Response(url, resp.status)
             elif resp.status != 200:
                 return Response(url, resp.status)
-            elif urlsplit(resp['content-location']).netloc not in self.constraints:
+            elif urlsplit(resp.url).netloc not in self.constraints:
                 # httplib2 follows redirects automatically
                 # Check to make sure we've not been redirected off-site
                 return Response(url, resp.status)
@@ -117,7 +128,7 @@ class Patu(object):
                 # Skip links w/o an href attrib
                 continue
             href = link.attrib['href']
-            absolute_url = urljoin(resp['content-location'], href.strip())
+            absolute_url = urljoin(resp.url, href.strip())
             parts = urlsplit(absolute_url)
             if parts.netloc in self.constraints and parts.scheme == 'http':
                 # Ignore the #foo at the end of the url
@@ -130,7 +141,7 @@ class Patu(object):
                     # Skip links w/o an src attrib
                     continue
                 href = link.attrib['src']
-                absolute_url = urljoin(resp['content-location'], href.strip())
+                absolute_url = urljoin(resp.url, href.strip())
                 parts = urlsplit(absolute_url)
                 if parts.netloc in self.constraints and parts.scheme == 'http':
                     # Ignore the #foo at the end of the url

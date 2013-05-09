@@ -17,6 +17,6 @@ setup(
     entry_points = {
         'console_scripts': ['patu = patu:main']
     },
-    install_requires = ['httplib2', 'lxml', 'cssselect'],
+    install_requires = ['httplib2', 'lxml', 'cssselect', 'requests'],
     py_modules = ['patu'],
 )
